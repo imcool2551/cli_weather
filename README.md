@@ -1,5 +1,6 @@
 # cli_weather
 Check weather on CLI
+
 Register an API Key at https://openweathermap.org
 
 ## Usage
