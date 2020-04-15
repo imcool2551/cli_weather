@@ -8,4 +8,3 @@ program
     .command('check', 'Check Code | Temp') // sub-command name (temp-list.js)
     .parse(process.argv)
 
-console.log(process.argv);
