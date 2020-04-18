@@ -3,6 +3,14 @@ Check weather on CLI
 
 Register an API Key at https://openweathermap.org
 
+Dependency: Redis-Server 
+
+## Redis-Server
+```
+brew install redis
+redis-server &
+```
+
 ## Usage
 ```
 npm install

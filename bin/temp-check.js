@@ -5,6 +5,6 @@ program
     .description('Output codes or temp')
     .option('-c, --code <code>', 'Enter City Code')
     .option('-f, --no-fer', 'Print in celcuis')
-    .action(cmd => check.print(cmd))
+    .action(cmd => check.get(cmd))
 
 program.parse(process.argv);

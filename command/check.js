@@ -1,31 +1,61 @@
 const colors = require('colors');
 const list = require('../data/list');
-const { convert_C, convert_F } = require('../util/convert');
+const { toC, toF } = require('../util/convert');
 const KeyManager = require('../lib/KeyManager');
 const WeatherAPI = require('../lib/WeatherAPI');
 
+// Redis Config
+const redis = require('redis');
+const client = redis.createClient();
+const hashKey = 'myhash';
+
+async function apiCall(cmd, api) {
+    const { name, temp } = await api.request(cmd.code);
+    const obj = {
+        name: name,
+        tempC: toC(temp) + ' C',
+        tempF: toF(temp) + ' F'
+    };
+    client.hset(hashKey, cmd.code, JSON.stringify(obj));
+    client.setex(cmd.code, 600, name);
+}
+
+function print(name, temp) {
+    console.log(name.green + ' is now ' + temp.yellow);
+}
+
+
 const check = {
-    async print(cmd) {
+    async get(cmd) {
         try {
             if (cmd.code) {
                 const apiKey = new KeyManager().getKey();
                 const api = new WeatherAPI(apiKey);
-                const outputData = await api.request(cmd.code);
-                if (!cmd.fer) {
-                   convert_C(outputData);
-                   console.log(outputData.name.green + ' ' + outputData.temp + ' C');
-                }  else {
-                    convert_F(outputData);
-                    console.log(outputData.name.green + ' ' + outputData.temp + ' F');
-                }
+
+                if (!client.exists(cmd.code)) {
+                    await apiCall(cmd, api);
+                } 
+                client.hget(hashKey, cmd.code, (err, data) => {
+                    if (err)
+                        throw err;
+                    const obj = JSON.parse(data);
+                    if (cmd.fer) {
+                        print(obj.name, obj.tempF);
+                    } else {
+                        print(obj.name, obj.tempC);
+                    }
+                    process.exit();
+                })
             } else {
                 list.forEach(city => {
                     console.log(city.name.green + ' : ' + city.code.blue);
                 });
+                process.exit();
             }
         } catch (err) {
-            console.log(err.message.red + '@');
-        }
+            console.log(err.message.red);
+            process.exit();
+        } 
     }
 }
 
